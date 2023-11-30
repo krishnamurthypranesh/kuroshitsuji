@@ -5,7 +5,7 @@ import constants
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from exc import InvalidCollectionTemplate
+from exc import ConflictingCollectionName, InvalidCollectionTemplate
 from helpers import generate_id
 from journal.models import Collection
 from journal.schema import CollectionTemplate
@@ -27,6 +27,18 @@ def create_collection(request):
     except:
         raise InvalidCollectionTemplate()
 
+    existing_collection = None
+    try:
+        existing_collection = Collection.objects.get(
+            user_id=request.user.id,
+            name=body["name"],
+        )
+    except Collection.DoesNotExist:
+        logger.info(f"no collections exist for name: {body['name']}")
+
+    if existing_collection is not None:
+        raise ConflictingCollectionName(body["name"])
+
     collection = Collection(
         user_id=request.user.id,
         gid=generate_id(prefix=constants.COLLECTIONS_PREFIX),
@@ -38,13 +50,15 @@ def create_collection(request):
 
     collection.save()
 
-    return {
+    resp = {
         "collection_id": collection.gid,
         "name": collection.name,
         "template": collection.template,
         "active": collection.active,
         "created_at": collection.created_at.isoformat(),
     }
+
+    return JsonResponse(data=resp, status=201)
 
 
 @login_required

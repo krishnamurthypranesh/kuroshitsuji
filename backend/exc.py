@@ -21,3 +21,10 @@ class ExpiredUserSessionExcpetion(ApplicationBaseException):
 class InvalidCollectionTemplate(ApplicationBaseException):
     def __init__(self, err_msg="Invalid collection template provided"):
         super().__init__(err_msg, 400)
+
+
+class ConflictingCollectionName(ApplicationBaseException):
+    def __init__(self, collection_name: str):
+        err_msg = f"collection with name: {collection_name} already exists!"
+
+        super().__init__(err_msg=err_msg, status_code=409)
