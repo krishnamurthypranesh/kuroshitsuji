@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 
+import constants
 import environ
 
 
@@ -72,7 +73,11 @@ LOGGING = {
 SECRET_KEY = "django-insecure-3^6gb^l$g2w()!=ric=576#1f32lr251&dmtg@j)q7kid_2%ah"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = (
+    True
+    if __env.get_env_val("APP_ENVIRONMENT") != constants.APP_ENVIRONMENT_PRODUCTION
+    else False
+)
 
 ALLOWED_HOSTS = []
 
@@ -84,7 +89,6 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
-    "django.contrib.messages",
     "django.contrib.staticfiles",
     "authn",
     "journal",
@@ -94,11 +98,9 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    # "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
     "middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "middleware.ExceptionHandlingMiddleware",
 ]
 
 ROOT_URLCONF = "kuroshitsuji.urls"
