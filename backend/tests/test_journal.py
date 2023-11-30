@@ -1,11 +1,10 @@
 import uuid
-from datetime import datetime, timedelta, timezone
-from unittest import mock
 
 import pytest
 from authn.models import User, UserSession
-from django.test import Client, TestCase
+from django.test import Client
 from django.urls import reverse
+from journal.models import Collection
 
 
 @pytest.mark.django_db
@@ -219,3 +218,95 @@ class TestGetCollectionById:
         assert response is not None
         assert response.status_code == 200
         assert response.json() == create_response.json()
+
+
+@pytest.mark.django_db
+class TestListCollections:
+    @pytest.fixture(scope="function", autouse=True)
+    def setup(self, request, create_user_session):
+        token = create_user_session
+
+        user = User.objects.get(
+            id=UserSession.objects.get(session_id=token),
+        )
+
+        collection_ids = []
+
+        for i in range(20):
+            is_active = False
+            if i < 10:
+                is_active = True
+            name = str(uuid.uuid1())
+
+            response = self.client.post(
+                reverse("create_collection"),
+                data={
+                    "name": name,
+                    "template": {
+                        "fields": [
+                            {
+                                "key": "title",
+                                "display_name": "Title",
+                            },
+                            {
+                                "key": "content",
+                                "display_name": "Content",
+                            },
+                        ],
+                    },
+                    "active": is_active,
+                },
+                content_type="application/json",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+            assert response is not None
+            assert response.status_code == 201
+
+            collection_ids.append(response.json()["collection_id"])
+
+        collections = Collection.objects.get(id__in=collection_ids, user_id=user.id)
+
+        request.cls.user = user
+        request.cls.token = token
+        request.cls.collections = collections
+
+        yield
+
+        Collection.objects.filter(user_id=user.id).delete()
+
+    def test_returns_empty_list_if_no_collections_present(self, create_user_session):
+        assert 1 == 0
+
+    def test_paginates_list_correctly(self):
+        Collection.objects.filter(user_id=self.user.id).delete()
+
+        response = self.client.get(
+            reverse("list_collections"),
+            header={"Authorization": f"Bearer {self.token}"},
+            content_type="application/json",
+        )
+
+        assert response is not None
+        assert response.status_code == 200
+
+        assert response.json() == {
+            "limit": 20,
+            "starting_after": None,
+            "ending_after": None,
+            "collections": [],
+        }
+
+    def test_applies_sort_ordering_correctly(self):
+        assert 1 == 0
+
+    def test_returns_only_active_collections_by_default_when_active_filter_applied(
+        self,
+    ):
+        assert 1 == 0
+
+    def test_returns_inactive_collections_when_inactive_filter_applied(self):
+        assert 1 == 0
+
+    def test_returns_all_collections_when_active_filter_no_applied(self):
+        assert 1 == 0
