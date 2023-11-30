@@ -3,7 +3,7 @@ version: "3.8"
 services:
   app:
     networks:
-      - yurucamp
+      - kuroshitsuji
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,7 +12,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - "./yurucamp:/code/"
+      - "./backend:/code/"
     depends_on:
       database:
         condition: service_healthy
@@ -21,19 +21,19 @@ services:
 
   database:
     networks:
-      - yurucamp
+      - kuroshitsuji
     container_name: db
     image: bitnami/postgresql:14
     ports:
       - "5432:5432"
     volumes:
-      - postgres-yurucamp:/data/db
+      - postgres-kuroshitsuji:/data/db
     environment:
-      - POSTGRESQL_USERNAME=yc
+      - POSTGRESQL_USERNAME=seb
       - POSTGRESQL_PASSWORD=pass1234
-      - POSTGRESQL_DATABASE=yurucamp
+      - POSTGRESQL_DATABASE=kuroshitsuji
     healthcheck:
-      test: ["CMD", "pg_isready", "--dbname=yurucamp", "--username=yc"]
+      test: ["CMD", "pg_isready", "--dbname=kuroshitsuji", "--username=yc"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -41,7 +41,7 @@ services:
 
   firebase-auth:
     networks:
-      - yurucamp
+      - kuroshitsuji
     container_name: firebase-auth
     build:
       context: .
@@ -53,7 +53,7 @@ services:
       - "9099:9099"
 
 volumes:
-  postgres-yurucamp:
+  postgres-kuroshitsuji:
 
 networks:
-  yurucamp:
+  kuroshitsuji:

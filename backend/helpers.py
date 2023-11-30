@@ -5,7 +5,7 @@ import time
 
 import ksuid
 
-from yurucamp import settings
+from kuroshitsuji import settings
 
 
 def get_current_datetime():

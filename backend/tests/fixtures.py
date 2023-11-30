@@ -4,7 +4,7 @@ import pytest
 import requests
 from authn.models import User
 
-from yurucamp.settings import get_env
+from kuroshitsuji.settings import get_env
 
 env = get_env()
 
