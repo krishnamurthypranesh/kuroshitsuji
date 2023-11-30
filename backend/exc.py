@@ -6,6 +6,14 @@ class ApplicationBaseException(Exception):
         super().__init__(err_msg)
 
 
+class ObjectNotFound(ApplicationBaseException):
+    def __init__(self, obj_name: str):
+        super().__init__(
+            err_msg=f"{obj_name} not found",
+            status_code=404,
+        )
+
+
 class IncorrectAuthenticationCredentialsException(ApplicationBaseException):
     def __init__(self, err_msg="Incorrect credentials provided"):
         self.status_code = 401
