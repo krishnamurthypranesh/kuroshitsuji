@@ -1,6 +1,6 @@
 class ApplicationBaseException(Exception):
     def __init__(self, err_msg: str, status_code: int):
-        self.err_msg = str
+        self.err_msg = err_msg
         self.status_code = status_code
 
         super().__init__(err_msg)
@@ -12,7 +12,12 @@ class IncorrectAuthenticationCredentialsException(ApplicationBaseException):
         super().__init__(err_msg, status_code=401)
 
 
-class ExpiredUserSessionExcpetion(BaseException):
+class ExpiredUserSessionExcpetion(ApplicationBaseException):
     def __init__(self, err_msg="Expired session"):
         self.status_code = 440
         super().__init__(err_msg, status_code=440)
+
+
+class InvalidCollectionTemplate(ApplicationBaseException):
+    def __init__(self, err_msg="Invalid collection template provided"):
+        super().__init__(err_msg, 400)
