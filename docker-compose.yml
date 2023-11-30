@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  app:
+    networks:
+      - yurucamp
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend
+    env_file: .env.compose
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./yurucamp:/code/"
+    depends_on:
+      database:
+        condition: service_healthy
+      firebase-auth:
+        condition: service_started
+
+  database:
+    networks:
+      - yurucamp
+    container_name: db
+    image: bitnami/postgresql:14
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-yurucamp:/data/db
+    environment:
+      - POSTGRESQL_USERNAME=yc
+      - POSTGRESQL_PASSWORD=pass1234
+      - POSTGRESQL_DATABASE=yurucamp
+    healthcheck:
+      test: ["CMD", "pg_isready", "--dbname=yurucamp", "--username=yc"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  firebase-auth:
+    networks:
+      - yurucamp
+    container_name: firebase-auth
+    build:
+      context: .
+      dockerfile: Dockerfile.Firebase
+    env_file: .env.compose
+    volumes:
+      - ./firebase.json:/app/firebase.json:ro
+    ports:
+      - "9099:9099"
+
+volumes:
+  postgres-yurucamp:
+
+networks:
+  yurucamp:

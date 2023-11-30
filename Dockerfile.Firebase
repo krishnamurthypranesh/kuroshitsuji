@@ -1,0 +1,11 @@
+# from the Dockerfile.Firestore described
+# in this SO question https://stackoverflow.com/questions/66176947/run-google-firestore-emulator-with-docker-compose
+FROM node:alpine
+
+RUN apk add openjdk11
+
+RUN npm install -g firebase-tools
+
+WORKDIR /app
+
+CMD [ "firebase", "--project=demo-yurucamp", "emulators:start", "--only", "auth" ]
