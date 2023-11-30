@@ -223,11 +223,13 @@ class TestGetCollectionById:
 @pytest.mark.django_db
 class TestListCollections:
     @pytest.fixture(scope="function", autouse=True)
-    def setup(self, request, create_user_session):
+    def setup(self, create_user_session):
+        self.client = Client()
+
         token = create_user_session
 
         user = User.objects.get(
-            id=UserSession.objects.get(session_id=token),
+            id=UserSession.objects.get(session_id=token).user_id,
         )
 
         collection_ids = []
@@ -265,11 +267,11 @@ class TestListCollections:
 
             collection_ids.append(response.json()["collection_id"])
 
-        collections = Collection.objects.get(id__in=collection_ids, user_id=user.id)
+        collections = Collection.objects.filter(gid__in=collection_ids, user_id=user.id)
 
-        request.cls.user = user
-        request.cls.token = token
-        request.cls.collections = collections
+        self.user = user
+        self.token = token
+        self.collections = collections
 
         yield
 
