@@ -147,3 +147,75 @@ class TestCreateCollection:
 
         assert response is not None
         assert response.status_code == 201
+
+
+@pytest.mark.django_db
+class TestGetCollectionById:
+    @pytest.fixture(scope="class", autouse=True)
+    def setUp(self, request):
+        request.cls.client = Client()
+
+    def test_returns_401_if_authentication_fails(self):
+        response = self.client.get(
+            reverse(
+                viewname="get_collection_by_id", kwargs={"collection_id": "random_id"}
+            ),
+            content_type="application/json",
+        )
+
+        assert response is not None
+        assert response.status_code == 401
+        assert response.json() == {"detail": "Unauthorized"}
+
+    def test_returns_404_if_collection_not_found(self, create_user_session):
+        token = create_user_session
+        response = self.client.get(
+            reverse(
+                viewname="get_collection_by_id", kwargs={"collection_id": "gibberish"}
+            ),
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response is not None
+        assert response.status_code == 404
+        assert response.json() == {"detail": "collection not found"}
+
+    def test_returns_200_if_collection_is_found(self, create_user_session):
+        token = create_user_session
+
+        create_response = self.client.post(
+            reverse("create_collection"),
+            data={
+                "name": str(uuid.uuid1()),
+                "template": {
+                    "fields": [
+                        {
+                            "key": "title",
+                            "display_name": "Title",
+                        },
+                        {
+                            "key": "content",
+                            "display_name": "Content",
+                        },
+                    ],
+                },
+                "active": False,
+            },
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        collection_id = create_response.json()["collection_id"]
+
+        response = self.client.get(
+            reverse(
+                viewname="get_collection_by_id", kwargs={"collection_id": collection_id}
+            ),
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response is not None
+        assert response.status_code == 200
+        assert response.json() == create_response.json()

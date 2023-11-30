@@ -6,10 +6,10 @@ from authn.models import User
 from django.test import Client
 from django.urls import reverse
 from kuroshitsuji.settings import get_env
-from kuroshitsuji.settings import get_env
 
 client = Client()
 env = get_env()
+
 
 @pytest.fixture(scope="function")
 def setup_firebase_user():

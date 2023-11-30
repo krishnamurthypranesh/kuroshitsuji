@@ -5,7 +5,7 @@ import constants
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from exc import ConflictingCollectionName, InvalidCollectionTemplate
+from exc import ConflictingCollectionName, InvalidCollectionTemplate, ObjectNotFound
 from helpers import generate_id
 from journal.models import Collection
 from journal.schema import CollectionTemplate
@@ -63,18 +63,24 @@ def create_collection(request):
 
 @login_required
 @require_http_methods(["GET"])
-def get_collection(request):
-    collection = Collection.objects.get(
-        user_id=request.user.id,
-        gid=request.params["gid"],
-    )
-    return {
+def get_collection(request, collection_id):
+    try:
+        collection = Collection.objects.get(
+            user_id=request.user.id,
+            gid=collection_id,
+        )
+    except Collection.DoesNotExist:
+        raise ObjectNotFound("collection")
+
+    resp = {
         "collection_id": collection.gid,
         "name": collection.name,
         "template": collection.template,
         "active": collection.active,
         "created_at": collection.created_at.isoformat(),
     }
+
+    return JsonResponse(data=resp, status=200)
 
 
 # def list_items(
