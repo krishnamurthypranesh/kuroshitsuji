@@ -33,7 +33,7 @@ services:
       - POSTGRESQL_PASSWORD=pass1234
       - POSTGRESQL_DATABASE=kuroshitsuji
     healthcheck:
-      test: ["CMD", "pg_isready", "--dbname=kuroshitsuji", "--username=yc"]
+      test: ["CMD", "pg_isready", "--dbname=kuroshitsuji", "--username=seb"]
       interval: 5s
       timeout: 5s
       retries: 5
