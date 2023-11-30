@@ -1,5 +1,5 @@
 """
-URL configuration for yurucamp project.
+URL configuration for kuroshitsuji project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
@@ -17,9 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-import authn
-
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("v1/authn/", include("authn.urls")),
+    path("v1/journal/", include("journal.urls")),
 ]

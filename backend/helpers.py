@@ -1,11 +1,11 @@
-from datetime import datetime, timezone
 import hashlib
 import random
 import time
+from datetime import datetime, timezone
+from typing import Optional
 
 import ksuid
-
-from yurucamp import settings
+from kuroshitsuji import settings
 
 
 def get_current_datetime():
@@ -16,8 +16,11 @@ def get_current_date():
     return datetime.utcnow().date()
 
 
-def generate_id():
-    return str(ksuid.Ksuid())
+def generate_id(prefix: Optional[str] = None):
+    _id = str(ksuid.Ksuid())
+    if prefix:
+        return f"{prefix}_{_id}"
+    return _id
 
 
 # this is copied from: https://www.hacksplaining.com/prevention/weak-session

@@ -4,7 +4,7 @@ import requests
 from authn.models import User
 from exc import ApplicationBaseException, IncorrectAuthenticationCredentialsException
 
-from yurucamp.settings import get_env
+from kuroshitsuji.settings import get_env
 
 logger = logging.getLogger(__name__)
 

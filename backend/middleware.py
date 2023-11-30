@@ -1,10 +1,9 @@
+import logging
 from datetime import timezone
 
+from authn.models import User, UserSession
 from django.http import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
-
-from authn.models import User, UserSession
-from exc import ExpiredUserSessionExcpetion
 from helpers import get_current_datetime
 
 
@@ -26,8 +25,20 @@ class AuthenticationMiddleware(MiddlewareMixin):
                 user_session.expires_at.astimezone(timezone.utc)
                 < get_current_datetime()
             ):
-                raise ExpiredUserSessionExcpetion()
+                return JsonResponse(data={"detail": "session expired"}, status=440)
 
             user = User.objects.get(id=user_session.user_id)
 
             request.user = user
+
+
+class ExceptionHandlingMiddleware(MiddlewareMixin):
+    def process_view(self, request, view_func, *view_args, **view_kwargs):
+        try:
+            return view_func(request)
+        except Exception as e:
+            logging.error(f"error: {e} when processing request")
+            error_message = getattr(e, "err_msg", str(e))
+            status_code = getattr(e, "status_code", 500)
+
+            return JsonResponse(data={"detail": error_message}, status=status_code)

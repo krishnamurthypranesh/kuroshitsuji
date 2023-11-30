@@ -3,8 +3,11 @@ import random
 import pytest
 import requests
 from authn.models import User
+from django.test import Client
+from django.urls import reverse
+from kuroshitsuji.settings import get_env
 
-from yurucamp.settings import get_env
+client = Client()
 
 env = get_env()
 
@@ -39,3 +42,21 @@ def setup_user_account(setup_firebase_user):
     user = User.objects.create_user(username=username)
 
     return username, password
+
+
+@pytest.fixture(scope="function")
+def create_user_session(setup_user_account):
+    username, password = setup_user_account
+
+    response = client.post(
+        reverse("create_session"),
+        data={
+            "username": username,
+            "password": password,
+        },
+        content_type="application/json",
+    )
+    assert response is not None
+    assert response.status_code == 201
+
+    return response.json()["token"]

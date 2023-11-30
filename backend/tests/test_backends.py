@@ -7,7 +7,7 @@ from backends import FirebaseAuthenticationBackend
 from django.http import HttpRequest
 from exc import ApplicationBaseException, IncorrectAuthenticationCredentialsException
 
-from yurucamp.settings import __env
+from kuroshitsuji.settings import __env
 
 
 @pytest.mark.django_db
