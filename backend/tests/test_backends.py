@@ -6,7 +6,6 @@ from authn.models import User
 from backends import FirebaseAuthenticationBackend
 from django.http import HttpRequest
 from exc import ApplicationBaseException, IncorrectAuthenticationCredentialsException
-from kuroshitsuji.settings import __env
 
 
 @pytest.mark.django_db

@@ -8,7 +8,6 @@ from django.urls import reverse
 from kuroshitsuji.settings import get_env
 
 client = Client()
-
 env = get_env()
 
 
