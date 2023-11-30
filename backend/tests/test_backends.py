@@ -6,7 +6,6 @@ from authn.models import User
 from backends import FirebaseAuthenticationBackend
 from django.http import HttpRequest
 from exc import ApplicationBaseException, IncorrectAuthenticationCredentialsException
-
 from kuroshitsuji.settings import __env
 
 
@@ -33,7 +32,9 @@ class TestFirebaseAuthenticationBackendAuthenticate:
 
     def test_makes_correct_request_when_authenticating_users(self, setup_user_account):
         username, password = setup_user_account
+
         self.mock_request.post.return_value = mock.MagicMock()
+        self.mock_request.post.return_value.status_code = 200
 
         u = FirebaseAuthenticationBackend().authenticate(
             HttpRequest(), username, password

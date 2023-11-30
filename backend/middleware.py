@@ -32,13 +32,16 @@ class AuthenticationMiddleware(MiddlewareMixin):
             request.user = user
 
 
-class ExceptionHandlingMiddleware(MiddlewareMixin):
-    def process_view(self, request, view_func, *view_args, **view_kwargs):
-        try:
-            return view_func(request)
-        except Exception as e:
-            logging.error(f"error: {e} when processing request")
-            error_message = getattr(e, "err_msg", str(e))
-            status_code = getattr(e, "status_code", 500)
+class ExceptionHandlingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-            return JsonResponse(data={"detail": error_message}, status=status_code)
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        logging.error(f"error: {exception} when processing request")
+        error_message = getattr(exception, "err_msg", str(exception))
+        status_code = getattr(exception, "status_code", 500)
+
+        return JsonResponse(data={"detail": error_message}, status=status_code)
