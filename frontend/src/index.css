@@ -69,3 +69,7 @@ input[type="button"] {
     cursor: pointer;
 
 }
+
+#main-container {
+  padding-top: 100px;
+}
