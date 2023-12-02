@@ -1,6 +1,19 @@
 version: "3.8"
 
 services:
+  client:
+    networks:
+      - kuroshitsuji
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: frontend
+    env_file: .env.compose
+    ports:
+      - "3000:3000"
+    volumes:
+      - "./frontend:/code/"
+
   app:
     networks:
       - kuroshitsuji

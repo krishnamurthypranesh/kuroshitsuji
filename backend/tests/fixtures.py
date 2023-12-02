@@ -48,7 +48,7 @@ def create_user_session(setup_user_account):
     username, password = setup_user_account
 
     response = client.post(
-        reverse("create_session"),
+        reverse("user_sessions"),
         data={
             "username": username,
             "password": password,

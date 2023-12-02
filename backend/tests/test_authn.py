@@ -16,7 +16,7 @@ class TestCreateUserSession:
 
     def test_raises_400_if_body_is_not_correct_json(self):
         response = self.client.post(
-            reverse("create_session"),
+            reverse("user_sessions"),
             content_type="application/json",
             data="<html></html>",
         )
@@ -29,7 +29,7 @@ class TestCreateUserSession:
         with mock.patch("authn.views.authenticate") as _mock:
             _mock.return_value = None
             response = self.client.post(
-                reverse("create_session"),
+                reverse("user_sessions"),
                 content_type="application/json",
                 data={
                     "username": "test-username",
@@ -56,7 +56,7 @@ class TestCreateUserSession:
                 _gen_mock.return_value = mock_session_id
 
                 response = self.client.post(
-                    reverse("create_session"),
+                    reverse("user_sessions"),
                     content_type="application/json",
                     data={
                         "username": username,
