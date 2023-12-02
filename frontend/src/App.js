@@ -10,6 +10,8 @@ import PrivateRoute from './PrivateRoute';
 
 import CreateCollection from './CreateCollection';
 
+import CollectionDetails from './CollectionDetails';
+
 import './App.css';
 
 import { useEffect, useState, useLayoutEffect } from 'react';
@@ -61,9 +63,14 @@ function App() {
             <Route exact path='/' element={<Home loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}/>
           </Route>
 
-          <Route exact path='/collections/new' element={<PrivateRoute component={CreateCollection} loggedIn={loggedIn} />}>
+          {/* <Route exact path='/collections/new' element={<PrivateRoute component={CreateCollection} loggedIn={loggedIn} />}>
             <Route path="/collections/new" element={<CreateCollection />} />
+          </Route> */}
+
+          <Route exact path='/collections/:collectionId' element={<PrivateRoute component={CollectionDetails} loggedIn={loggedIn} />}>
+            <Route path="/collections/:collectionId" element={<CollectionDetails />} />
           </Route>
+
 
         </Routes>
 

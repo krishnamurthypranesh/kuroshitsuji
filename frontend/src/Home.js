@@ -44,10 +44,10 @@ const Home = (props) => {
         const generateRow = (record, index) => {
             return (
                 <tr>
-                    <td>{index + 1}</td>
-                    <td>{record.collection_id}</td>
-                    <td>{record.name}</td>
-                    <td>{record.created_at}</td>
+                        <td>{index + 1}</td>
+                        <td><a href={"/collections/" + record.collection_id}>{record.collection_id}</a></td>
+                        <td>{record.name}</td>
+                        <td>{record.created_at}</td>
                 </tr>
             )
         }
