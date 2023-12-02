@@ -15,6 +15,8 @@ from pathlib import Path
 import constants
 import environ
 
+ADMIN_ENABLED = False
+
 
 class Env:
     def __init__(self):
@@ -81,15 +83,29 @@ DEBUG = (
 
 ALLOWED_HOSTS = []
 
+# CORS_ALLOWED_ORIGINS = [
+#     __env.get_env_val("APP_CORS_ALLOWED_ORIGINS")
+# ]
+
+allow_all_origins = False
+cors_origins = __env.get_env_val("APP_CORS_ALLOWED_ORIGINS")
+if DEBUG:
+    allow_all_origins = True
+    cors_origins = ["http://localhost:3000"]
+
+CORS_ALLOWED_ORIGINS = cors_origins
+CORS_ALLOW_ALL_ORIGNS = allow_all_origins
+CORS_ALLOW_CREDENTIALS = allow_all_origins
+
 
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.staticfiles",
+    "corsheaders",
     "authn",
     "journal",
 ]
@@ -97,6 +113,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",

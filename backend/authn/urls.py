@@ -1,7 +1,6 @@
+from authn import views
 from django.urls import path
 
-from authn import views
-
 urlpatterns = [
-    path("user-sessions/", views.create_session, name="create_session"),
+    path("user-sessions/", views.UserSessions.as_view(), name="user_sessions"),
 ]

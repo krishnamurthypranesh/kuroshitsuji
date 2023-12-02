@@ -42,7 +42,6 @@ response = requests.post(
         "Content-Type": "application/json",
     },
 )
-breakpoint()
 response.raise_for_status()
 
 # insert user into db
