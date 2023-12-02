@@ -41,7 +41,7 @@ class CollectionOut(CustomBase):
 
 
 class ListCollectionResponse(CustomBase):
-    next_cursor: Optional[str]
-    prev_cursor: Optional[str]
+    starting_after: Optional[str] = None
+    ending_before: Optional[str] = None
     limit: int
     records: List[CollectionOut]

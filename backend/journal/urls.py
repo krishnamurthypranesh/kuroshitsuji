@@ -2,7 +2,7 @@ from django.urls import path
 from journal import views
 
 urlpatterns = [
-    path("collections/", views.create_collection, name="create_collection"),
+    path("collections/", views.collections_dispatcher, name="dispatch_collections"),
     path(
         "collections/<str:collection_id>/",
         views.get_collection,

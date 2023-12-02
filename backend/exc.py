@@ -6,6 +6,11 @@ class ApplicationBaseException(Exception):
         super().__init__(err_msg)
 
 
+class BadPaginationParameter(ApplicationBaseException):
+    def __init__(self, err_msg: str):
+        super().__init__(err_msg=err_msg, status_code=400)
+
+
 class ObjectNotFound(ApplicationBaseException):
     def __init__(self, obj_name: str):
         super().__init__(

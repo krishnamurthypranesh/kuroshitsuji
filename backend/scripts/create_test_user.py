@@ -8,6 +8,7 @@ django.setup()
 import constants
 import requests
 from django.contrib.auth import get_user_model
+from helpers import generate_id
 from kuroshitsuji.settings import get_env
 
 env = get_env()
@@ -45,9 +46,7 @@ response.raise_for_status()
 
 # insert user into db
 
-user = get_user_model()(
-    username=username,
-)
+user = get_user_model()(username=username, gid=generate_id(constants.USER_PREFIX))
 user.save()
 
 assert user.id is not None

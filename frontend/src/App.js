@@ -1,8 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
-import Home from './home';
+import Home from './Home';
 
-import Login from './login';
+import Login from './Login';
 
 import Navbar from './navigation/Navigation';
 
@@ -35,12 +35,10 @@ function App() {
   }, [])
 
 
-  console.log("1. before running checkSession: ", loggedIn);
   checkSession();
-  console.log("2. after running checkSession: ", loggedIn);
 
   return (
-      <div className="App">
+      <div className="App container-fluid" id="main-container">
 
       {loggedIn && <Navbar />}
 
