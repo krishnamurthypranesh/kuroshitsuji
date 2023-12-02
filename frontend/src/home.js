@@ -23,8 +23,8 @@ const Home = (props) => {
 
     return (
         <div>
-            <button type="button" class="btn btn-outline-primary" onClick={onCreateCollectionButtonClick}>Create Collection</button>
-            <table class="table">
+            <button type="button" className="btn btn-outline-primary" onClick={onCreateCollectionButtonClick}>Create Collection</button>
+            <table className="table">
                 <thead>
                     <tr>
                     <th scope="col">#</th>

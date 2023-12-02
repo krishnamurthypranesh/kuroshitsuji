@@ -4,29 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 
 export async function createSession(email, password, props) {
-    let token = "";
-    // fetch(
-    //     "http://localhost:8000/v1/authn/user-sessions/",
-    //     {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //         },
-    //         body: JSON.stringify({
-    //             username: email,
-    //             password: password,
-    //         })
-    //     }
-    // ).then(r => {
-    //     if (r.ok) {
-    //         return r.json();
-    //     } else {
-    //         console.log(r)
-    //         throw new Error("failed to login");
-    //     }
-    // }).then((data) => {
-    //     token = data.token;
-    // });
     const response = await fetch(
         "http://localhost:8000/v1/authn/user-sessions/",
         {
@@ -54,9 +31,7 @@ export async function createSession(email, password, props) {
 export async function deleteSession() {
     const userToken = JSON.parse(localStorage.getItem("user")).token;
 
-    let loggedOut = false;
-
-    fetch(
+    const response = await fetch(
         "http://localhost:8000/v1/authn/user-sessions/",
         {
             method: "DELETE",
@@ -65,18 +40,14 @@ export async function deleteSession() {
                 "Content-Type": "application/json",
             },
         }
-    ).then(r => {
-        if(!r.ok) {
-            console.log("unable to log out");
-        } else {
-            console.log("logged out successfully");
-            loggedOut = true;
-        }
-    })
+    );
 
-    if (!loggedOut) {
-        throw new Error("unable to log out!");
+    if (!response.ok) {
+        console.log(response);
+        throw new Error("failed to login");
     }
+
+    return true
 }
 
 
@@ -118,12 +89,7 @@ const Login = (props) => {
             return
         }
 
-        if (!loggedIn) {
-            console.log("loggedIn: ", loggedIn)
-            logIn();
-        } else {
-            console.log("already logged in");
-        }
+        logIn();
 
     }
 
@@ -140,6 +106,11 @@ const Login = (props) => {
             console.log(e);
         }
 
+    }
+
+    if (loggedIn) {
+        console.log("already logged in");
+        navigate("/");
     }
 
     return <div className={"mainContainer"}>

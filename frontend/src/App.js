@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import Home from './home';
 
@@ -15,21 +15,29 @@ import './App.css';
 import { useEffect, useState, useLayoutEffect } from 'react';
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [email, setEmail] = useState("");
-
-  useEffect(() => {
+  const checkSession = () => {
     const user = JSON.parse(localStorage.getItem("user"))
 
     if (!user || !user.token) {
-      setLoggedIn(false)
-      return
-    } else {
-      setLoggedIn(true)
+      // make a call to check the validity of the session here
+      return false
     }
+
+    return true
+  }
+
+  const [loggedIn, setLoggedIn] = useState(checkSession());
+  const [email, setEmail] = useState("");
+
+  useLayoutEffect(() => {
+    const _loggedIn = checkSession();
+    setLoggedIn(_loggedIn);
   }, [])
 
-  console.log("before returning app: ", loggedIn);
+
+  console.log("1. before running checkSession: ", loggedIn);
+  checkSession();
+  console.log("2. after running checkSession: ", loggedIn);
 
   return (
       <div className="App">
@@ -40,15 +48,24 @@ function App() {
 
         <Routes>
 
-          <Route exact path='/' element={<PrivateRoute loggedIn={loggedIn} />}>
+          <Route
+            exact
+            path="/login"
+            element={
+              !loggedIn ? (
+                <Login loggedIn={loggedIn} setLoggedIn={setLoggedIn} setEmail={setEmail} />
+              ) : (
+                <Navigate replace to={"/"} />
+              )}
+            />
+
+          <Route exact path='/' element={<PrivateRoute component={Home} loggedIn={loggedIn} />}>
             <Route exact path='/' element={<Home loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}/>
           </Route>
 
-          <Route exact path='/collections/new' element={<PrivateRoute loggedIn={loggedIn} />}>
+          <Route exact path='/collections/new' element={<PrivateRoute component={CreateCollection} loggedIn={loggedIn} />}>
             <Route path="/collections/new" element={<CreateCollection />} />
           </Route>
-
-          { !loggedIn && <Route path="/login" element={<Login setLoggedIn={setLoggedIn} setEmail={setEmail} />} /> }
 
         </Routes>
 
