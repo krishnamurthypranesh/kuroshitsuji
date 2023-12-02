@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 import pytest
 from authn.models import User, UserSession
@@ -16,7 +17,7 @@ class TestCreateCollection:
     def test_raises_400_if_body_is_not_correct_json(self, create_user_session):
         token = create_user_session
         response = self.client.post(
-            reverse("create_collection"),
+            reverse("dispatch_collections"),
             content_type="application/json",
             data="<html></html>",
             headers={"Authorization": f"Bearer {token}"},
@@ -28,7 +29,7 @@ class TestCreateCollection:
 
     def test_returns_401_if_authentication_fails(self):
         response = self.client.post(
-            reverse("create_collection"),
+            reverse("dispatch_collections"),
             content_type="application/json",
             data={},
         )
@@ -43,7 +44,7 @@ class TestCreateCollection:
         token = create_user_session
 
         response = self.client.post(
-            reverse("create_collection"),
+            reverse("dispatch_collections"),
             data={
                 "name": "test_template",
                 "template": "<html></html>",
@@ -64,7 +65,7 @@ class TestCreateCollection:
             name = str(uuid.uuid1())
 
             response = self.client.post(
-                reverse("create_collection"),
+                reverse("dispatch_collections"),
                 data={
                     "name": name,
                     "template": {
@@ -89,7 +90,7 @@ class TestCreateCollection:
             assert response.status_code == 201
 
             response = self.client.post(
-                reverse("create_collection"),
+                reverse("dispatch_collections"),
                 data={
                     "name": name,
                     "template": {
@@ -123,7 +124,7 @@ class TestCreateCollection:
         token = create_user_session
 
         response = self.client.post(
-            reverse("create_collection"),
+            reverse("dispatch_collections"),
             data={
                 "name": str(uuid.uuid1()),
                 "template": {
@@ -184,7 +185,7 @@ class TestGetCollectionById:
         token = create_user_session
 
         create_response = self.client.post(
-            reverse("create_collection"),
+            reverse("dispatch_collections"),
             data={
                 "name": str(uuid.uuid1()),
                 "template": {
@@ -241,7 +242,7 @@ class TestListCollections:
             name = str(uuid.uuid1())
 
             response = self.client.post(
-                reverse("create_collection"),
+                reverse("dispatch_collections"),
                 data={
                     "name": name,
                     "template": {
@@ -267,7 +268,9 @@ class TestListCollections:
 
             collection_ids.append(response.json()["collection_id"])
 
-        collections = Collection.objects.filter(gid__in=collection_ids, user_id=user.id)
+        collections = Collection.objects.filter(
+            gid__in=collection_ids, user_id=user.id
+        ).order_by("-gid")
 
         self.user = user
         self.token = token
@@ -277,38 +280,62 @@ class TestListCollections:
 
         Collection.objects.filter(user_id=user.id).delete()
 
-    def test_returns_empty_list_if_no_collections_present(self, create_user_session):
-        assert 1 == 0
+    def test_returns_401_if_unauthenticated(self):
+        response = self.client.get(
+            reverse(viewname="dispatch_collections"),
+            data={
+                "limit": 10,
+            },
+            content_type="application/json",
+        )
 
-    def test_paginates_list_correctly(self):
+        assert response is not None
+        assert response.status_code == 401
+
+        assert response.json() == {"detail": "Unauthorized"}
+
+    def test_returns_empty_list_if_no_collections_present(self):
         Collection.objects.filter(user_id=self.user.id).delete()
 
         response = self.client.get(
-            reverse("list_collections"),
-            header={"Authorization": f"Bearer {self.token}"},
+            reverse(viewname="dispatch_collections"),
+            data={
+                "limit": 10,
+            },
+            headers={"Authorization": f"Bearer {self.token}"},
             content_type="application/json",
         )
 
         assert response is not None
         assert response.status_code == 200
 
-        assert response.json() == {
-            "limit": 20,
-            "starting_after": None,
-            "ending_after": None,
-            "collections": [],
-        }
+        assert response.json()["records"] == []
 
-    def test_applies_sort_ordering_correctly(self):
-        assert 1 == 0
+    def test_applies_starting_after_filter_correctly(self):
+        for idx, col in enumerate(self.collections):
+            response = self.client.get(
+                reverse(viewname="dispatch_collections"),
+                data={
+                    "limit": 20,
+                    "starting_after": col.gid,
+                },
+                headers={"Authorization": f"Bearer {self.token}"},
+                content_type="application/json",
+            )
 
-    def test_returns_only_active_collections_by_default_when_active_filter_applied(
-        self,
-    ):
-        assert 1 == 0
+            assert response is not None
+            assert response.status_code == 200
 
-    def test_returns_inactive_collections_when_inactive_filter_applied(self):
-        assert 1 == 0
+            actual_map = {r["collection_id"]: r for r in response.json()["records"]}
 
-    def test_returns_all_collections_when_active_filter_no_applied(self):
-        assert 1 == 0
+            for e in self.collections[:idx]:
+                actual = actual_map[e.gid]
+
+                assert e.gid == actual["collection_id"]
+                assert e.name == actual["name"]
+                assert e.template == actual["template"]
+                assert e.active == actual["active"]
+                assert (
+                    e.created_at.replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    == actual["created_at"]
+                )
