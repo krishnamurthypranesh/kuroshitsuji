@@ -15,6 +15,8 @@ from pathlib import Path
 import constants
 import environ
 
+ADMIN_ENABLED = False
+
 
 class Env:
     def __init__(self):
@@ -85,7 +87,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
