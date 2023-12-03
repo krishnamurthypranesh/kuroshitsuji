@@ -6,18 +6,62 @@ const CreateEntry = (props) => {
     const urlParams = useParams();
 
     const [collection, setCollection] = useState({});
+
+    const [entryTitle, setEntryTitle] = useState("");
     const [entryContent, setEntryContent] = useState("");
+    const [shouldPublish, setShouldPublish] = useState(false);
 
     useEffect(() => { getCollectionById() }, [])
 
     const navigate = useNavigate();
 
-    const onSaveButtonClick = () => {
-        // navigate to the concerned url
-        navigate("/collections/" + urlParams.collectionId + "/new-entry/")
-    }
+    async function handleSubmit(e) {
+        // get the content of the form
+        // getting the content of the form will have to be done based on the value of collection.template
+        // since the form is going to be rendered in the same order as the template, I can just loop through the template
+        // and get the values based on they
+        // but this does mean that I'll have to set the name of the form element to the key value from the template
+        const entry_title = e.target[0].value;
+        const entry_content = e.target[1].value;
 
-    const onPublishButtonClick = () => {}
+        const publish_check = e.target[2].value;
+        let publish = false;
+        if (publish_check === "on") {
+            publish = true;
+        }
+
+        const data = {
+            collection_id: collection.collection_id,
+            content: {
+                title: entry_title,
+                content: entry_content,
+            },
+            publish: publish,
+        }
+
+        const userToken = JSON.parse(localStorage.getItem("user")).token;
+
+        const response = await fetch(
+            "http://localhost:8000/v1/journal/entries/",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + userToken,
+                },
+                body: data,
+            }
+        )
+
+        const entry = await response.json();
+
+        if (!response.ok) {
+            console.log(response);
+            throw new Error(entry.detail);
+        }
+
+        navigate(`/collections/${collection.collection_id}/entries/${entry.entry_id}`);
+    }
 
     async function getCollectionById() {
         // const userToken = JSON.parse(localStorage.getItem("user")).token;
@@ -62,24 +106,30 @@ const CreateEntry = (props) => {
     }
 
     const renderForm = () => {
+        // loop through collection.template
+        // call the appropriate formIO class to build the form
+        // when building the form, set the name to the value of key
+        // once the form has been built, add the submit button to the end of the component
+        // the behavior of handleSubmit can be as it already is
         return (
-        <form>
-            <div className="form-group">
-                <label for="collectionEntry">Title</label>
-                <input type="email" className="form-control" id="collectionEntry" aria-describedby="emailHelp" placeholder="Enter title"></input>
-                <small id="emailHelp" className="form-text text-muted">We'll never share your email with anyone else.</small>
-            </div>
-            <div className="form-group">
-                <label for="CollectionEntry">Password</label>
-                <input type="password" className="form-control" id="CollectionEntry" placeholder="Password"></input>
-                <textarea id="entry-content" name="textarea" value={entryContent} onChange={(e) => {setEntryContent(e.target.value)}} cols={100} rows={10} style={{width: "100%"}}/>
-            </div>
-            <div className="form-group form-check">
-                <input type="checkbox" className="form-check-input" id="publish-entry-checkbox"></input>
-                <label className="form-check-label" for="publish-entry-checkbox">Publish this</label>
-            </div>
-            <button type="submit" className="btn btn-primary">Save Entry</button>
-        </form>
+        <div>
+            <h1>{collection.name}</h1>
+            <form id="collectionEntry" method="post" onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label htmlFor="collectionEntry">Title</label>
+                    <input className="form-control" htmlFor="collectionEntry" placeholder="Enter title" value={entryTitle} onChange={(e) => {setEntryTitle(e.target.value)}}></input>
+                </div>
+                <div className="form-group">
+                    <label htmlFor="collectionEntry">Content</label>
+                    <textarea id="entry-content" name="textarea" value={entryContent} onChange={(e) => {setEntryContent(e.target.value)}} cols={100} rows={10} style={{width: "100%"}}/>
+                </div>
+                <div className="form-group form-check">
+                    <input type="checkbox" htmlFor="collectionEntry" className="form-check-input" id="publish-entry-checkbox"></input>
+                    <label className="form-check-label" htmlFor="publish-entry-checkbox"  value={shouldPublish} onChange={(e) => {setShouldPublish(e.target.value)}}>Publish this</label>
+                </div>
+                <button htmlFor="collectionEntry" type="submit" className="btn btn-primary">Save Entry</button>
+            </form>
+        </div>
         )
     }
 
