@@ -41,3 +41,8 @@ class ConflictingCollectionName(ApplicationBaseException):
         err_msg = f"collection with name: {collection_name} already exists!"
 
         super().__init__(err_msg=err_msg, status_code=409)
+
+
+class InvalidEntryContent(ApplicationBaseException):
+    def __init__(self):
+        super().__init__(err_msg="invalid entry content supplied", status_code=400)

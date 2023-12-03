@@ -339,3 +339,24 @@ class TestListCollections:
                     e.created_at.replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
                     == actual["created_at"]
                 )
+
+
+@pytest.mark.django_db
+class TestCreateEntry:
+    @pytest.fixture(scope="function", autouse=True)
+    def setup(self):
+        pass
+
+    def test_returns_404_if_collection_not_found(self, create_user_session):
+        assert 1 == 0
+
+    def test_returns_400_if_entry_content_does_not_contain_all_required_fields_from_collection_template(
+        self, create_user_session
+    ):
+        assert 1 == 0
+
+    def test_saves_entry_with_correct_status_based_on_value_of_publish(self):
+        assert 1 == 0
+
+    def test_returns_401_if_unauthorized_request(self):
+        assert 1 == 0
