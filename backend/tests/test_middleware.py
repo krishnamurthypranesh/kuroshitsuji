@@ -13,7 +13,7 @@ class TestAuthenticationMiddleware(TestCase):
     def test_returns_401_if_not_auth_header_and_not_whitelisted_url(self):
         assert 1 == 0
 
-    def test_returns_400_if_session_id_not_found(self):
+    def test_returns_401_if_session_id_not_found(self):
         assert 1 == 0
 
     def test_returns_440_if_session_expired(self):

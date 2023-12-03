@@ -19,7 +19,11 @@ class AuthenticationMiddleware(MiddlewareMixin):
 
         else:
             _, token = auth_header.split(" ")
-            user_session = UserSession.objects.get(session_id=token)
+
+            try:
+                user_session = UserSession.objects.get(session_id=token)
+            except UserSession.DoesNotExist:
+                return JsonResponse(data={"detail": "Unauthorized"}, status=401)
 
             if (
                 user_session.expires_at.astimezone(timezone.utc)
