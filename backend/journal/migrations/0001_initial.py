@@ -47,7 +47,6 @@ class Migration(migrations.Migration):
                 ("user_id", models.BigIntegerField()),
                 ("collection_id", models.BigIntegerField()),
                 ("content", models.JSONField(default=dict)),
-                ("template", models.JSONField()),
                 (
                     "status",
                     models.IntegerField(

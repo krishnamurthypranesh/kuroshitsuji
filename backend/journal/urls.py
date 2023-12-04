@@ -1,5 +1,5 @@
 from django.urls import path
-from journal.views import collections
+from journal.views import collections, entries
 
 urlpatterns = [
     path(
@@ -10,4 +10,5 @@ urlpatterns = [
         collections.get_collection,
         name="get_collection_by_id",
     ),
+    path("entries/", entries.entries_dispatch, name="dispatch_entries"),
 ]

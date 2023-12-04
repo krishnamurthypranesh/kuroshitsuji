@@ -30,12 +30,13 @@ def entries_dispatch(request, *args, **kwargs):
 def create_entry(request):
     try:
         body = json.loads(request.body)
-    except json.decode.JSONDecodeError as e:
-        logger.error("error decoding json body")
+    except json.decoder.JSONDecodeError as e:
+        logger.error(request.body)
+        logger.error(f"error: {e} decoding json body")
         return JsonResponse(data={"detail": "improper data"}, status=400)
 
     try:
-        collection = Collection.objects.get(collection_id=body.get("collection_id"))
+        collection = Collection.objects.get(gid=body.get("collection_id"))
     except Collection.DoesNotExist:
         raise ObjectNotFound("collection")
 
@@ -50,7 +51,7 @@ def create_entry(request):
 
     entry_status = 10
     published_at = None
-    publish = request.body.get("publish")
+    publish = body.get("publish")
     if publish:
         entry_status = 20
         published_at = get_current_datetime()
@@ -59,7 +60,7 @@ def create_entry(request):
         gid=generate_id(constants.ENTRIES_PREFIX),
         user_id=request.user.id,
         collection_id=collection.id,
-        content=request.content,
+        content=body["content"],
         status=entry_status,
         published_at=published_at,
     )
