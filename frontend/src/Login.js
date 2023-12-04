@@ -124,52 +124,19 @@ const Login = (props) => {
         <br />
 
         <div className={"inputContainer"}>
+            <form>
+                <div className="form-group">
+                    <input type="email" className="form-control" id="login-email" placeholder="jhon@doe.com" onChange={ev => setEmail(ev.target.value)} />
+                    <label className="errorLabel">{emailError}</label>
+                </div>
 
-            <input
+                <div className="form-group">
+                    <input type="password" className="form-control" id="login-password" placeholder="password" onChange={pv => setPassword(pv.target.value)} />
+                    <label className="errorLabel">{passwordError}</label>
+                </div>
 
-                value={email}
-
-                placeholder="Enter your email here"
-
-                onChange={ev => setEmail(ev.target.value)}
-
-                className={"inputBox"} />
-
-            <label className="errorLabel">{emailError}</label>
-
-        </div>
-
-        <br />
-
-        <div className={"inputContainer"}>
-
-            <input
-
-                value={password}
-
-                placeholder="Enter your password here"
-
-                onChange={ev => setPassword(ev.target.value)}
-
-                className={"inputBox"} />
-
-            <label className="errorLabel">{passwordError}</label>
-
-        </div>
-
-        <br />
-
-        <div className={"inputContainer"}>
-
-            <input
-
-                className={"inputButton"}
-
-                type="button"
-
-                onClick={onButtonClick}
-
-                value={"Log in"} />
+                <button type="button" className="btn btn-primary" onClick={onButtonClick}>Log In</button>
+            </form>
 
         </div>
 
