@@ -15,28 +15,19 @@ const CreateEntry = (props) => {
 
     const navigate = useNavigate();
 
-    async function handleSubmit(e) {
+    async function handleFormSubmit(e) {
         // get the content of the form
         // getting the content of the form will have to be done based on the value of collection.template
         // since the form is going to be rendered in the same order as the template, I can just loop through the template
         // and get the values based on they
         // but this does mean that I'll have to set the name of the form element to the key value from the template
-        const entry_title = e.target[0].value;
-        const entry_content = e.target[1].value;
-
-        const publish_check = e.target[2].value;
-        let publish = false;
-        if (publish_check === "on") {
-            publish = true;
-        }
-
         const data = {
             collection_id: collection.collection_id,
             content: {
-                title: entry_title,
-                content: entry_content,
+                title: entryTitle,
+                content: entryContent,
             },
-            publish: publish,
+            publish: shouldPublish,
         }
 
         const userToken = JSON.parse(localStorage.getItem("user")).token;
@@ -49,7 +40,7 @@ const CreateEntry = (props) => {
                     "Content-Type": "application/json",
                     "Authorization": "Bearer " + userToken,
                 },
-                body: data,
+                body: JSON.stringify(data),
             }
         )
 
@@ -105,6 +96,10 @@ const CreateEntry = (props) => {
         setCollection(data)
     }
 
+    const handlePublishCheck = (e) => {
+        setShouldPublish(e.target.checked);
+    }
+
     const renderForm = () => {
         // loop through collection.template
         // call the appropriate formIO class to build the form
@@ -114,7 +109,7 @@ const CreateEntry = (props) => {
         return (
         <div>
             <h1>{collection.name}</h1>
-            <form id="collectionEntry" method="post" onSubmit={handleSubmit}>
+            <form id="collectionEntry">
                 <div className="form-group">
                     <label htmlFor="collectionEntry">Title</label>
                     <input className="form-control" htmlFor="collectionEntry" placeholder="Enter title" value={entryTitle} onChange={(e) => {setEntryTitle(e.target.value)}}></input>
@@ -124,10 +119,10 @@ const CreateEntry = (props) => {
                     <textarea id="entry-content" name="textarea" value={entryContent} onChange={(e) => {setEntryContent(e.target.value)}} cols={100} rows={10} style={{width: "100%"}}/>
                 </div>
                 <div className="form-group form-check">
-                    <input type="checkbox" htmlFor="collectionEntry" className="form-check-input" id="publish-entry-checkbox"></input>
-                    <label className="form-check-label" htmlFor="publish-entry-checkbox"  value={shouldPublish} onChange={(e) => {setShouldPublish(e.target.value)}}>Publish this</label>
+                    <input type="checkbox" htmlFor="collectionEntry" className="form-check-input" id="publish-entry-checkbox" value={shouldPublish} onChange={handlePublishCheck}></input>
+                    <label className="form-check-label" htmlFor="publish-entry-checkbox">Publish this</label>
                 </div>
-                <button htmlFor="collectionEntry" type="submit" className="btn btn-primary">Save Entry</button>
+                <button type="button" className="btn btn-primary" onClick={handleFormSubmit}>Save Entry</button>
             </form>
         </div>
         )
