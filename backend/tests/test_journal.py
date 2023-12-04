@@ -558,3 +558,22 @@ class TestCreateEntry:
 
         assert actual["content"] == content
         assert actual["collection_id"] == self.collection.gid
+
+
+@pytest.mark.django_db
+class TestListEntries:
+    @pytest.fixture(scope="function", autouse=True)
+    def setup(self, create_user_session):
+        pass
+
+    def test_returns_401_if_unauthenticated(self):
+        assert 1 == 0
+
+    def test_returns_empty_list_if_no_entries_present(self):
+        assert 1 == 0
+
+    def test_applies_starting_after_filter_correctly(self):
+        assert 1 == 0
+
+    def test_returns_404_if_collection_not_found(self):
+        assert 1 == 0

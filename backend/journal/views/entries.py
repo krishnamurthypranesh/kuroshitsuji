@@ -6,7 +6,12 @@ import constants
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from exc import InactiveCollectionEntryAddition, InvalidEntryContent, ObjectNotFound
+from exc import (
+    BadPaginationParameter,
+    InactiveCollectionEntryAddition,
+    InvalidEntryContent,
+    ObjectNotFound,
+)
 from helpers import generate_id, get_current_datetime
 from journal.models import Collection, Entry
 
@@ -19,7 +24,7 @@ def entries_dispatch(request, *args, **kwargs):
     if request.method.upper() == "GET":
         params = {
             k: request.GET.get(k, None)
-            for k in ["limit", "starting_after", "ending_before", "status"]
+            for k in ["limit", "starting_after", "ending_before", "collection_id"]
         }
         return list_entries(request, **params)
 
@@ -84,12 +89,64 @@ def create_entry(request):
 
 def list_entries(
     request,
+    collection_id: str,
     starting_after: Optional[str] = None,
     ending_before: Optional[str] = None,
     limit: int = 10,
 ):
-    response = {
-        "limit": 10,
-        "records": [],
-    }
-    return JsonResponse(data=response, status=200)
+    limit = int(limit)
+    if limit > constants.MAX_PAGINATION_LIMIT:
+        limit = constants.MAX_PAGINATION_LIMIT
+
+    conditions = [
+        starting_after is not None,
+        ending_before is not None,
+    ]
+
+    if all(conditions):
+        raise BadPaginationParameter(
+            "One of (starting_after, ending_before) must be supplied"
+        )
+
+    try:
+        collection = Collection.objects.get(gid=collection_id)
+    except Collection.DoesNotExist:
+        raise ObjectNotFound("collection")
+
+    query = Entry.objects.filter(user_id=request.user.id).order_by("-gid")
+
+    if starting_after is not None:
+        query = query.filter(gid__gt=starting_after)
+
+    if ending_before is not None:
+        query = query.filter(gid__lt=ending_before)
+
+    records = query[:limit]
+
+    ret_val = []
+    for rec in records:
+        ret_val.append(
+            EntryOut(
+                collection_id=collection.gid,
+                entry_id=rec.gid,
+                name=rec.name,
+                content=rec.content,
+                status=rec.status,
+                created_at=rec.created_at.replace(microsecond=0).isoformat(),
+                published=rec.published_at.replace(microsecond=0).isoformat(),
+            )
+        )
+
+    response = ListEntriesResponse(
+        limit=limit,
+        records=ret_val,
+    )
+
+    return JsonResponse(data=response.model_dump(), status=200)
+
+    response = ListCollectionResponse(
+        limit=limit,
+        records=ret_val,
+    )
+
+    return JsonResponse(data=response.model_dump(), status=200)
