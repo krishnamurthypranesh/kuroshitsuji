@@ -46,3 +46,10 @@ class ConflictingCollectionName(ApplicationBaseException):
 class InvalidEntryContent(ApplicationBaseException):
     def __init__(self):
         super().__init__(err_msg="invalid entry content supplied", status_code=400)
+
+
+class InactiveCollectionEntryAddition(ApplicationBaseException):
+    def __init__(self):
+        super().__init__(
+            err_msg="cannot add an entry for an inactive collection", status_code=400
+        )

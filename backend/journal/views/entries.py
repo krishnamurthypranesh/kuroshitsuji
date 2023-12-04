@@ -6,7 +6,7 @@ import constants
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from exc import InvalidEntryContent, ObjectNotFound
+from exc import InactiveCollectionEntryAddition, InvalidEntryContent, ObjectNotFound
 from helpers import generate_id, get_current_datetime
 from journal.models import Collection, Entry
 
@@ -39,6 +39,9 @@ def create_entry(request):
         collection = Collection.objects.get(gid=body.get("collection_id"))
     except Collection.DoesNotExist:
         raise ObjectNotFound("collection")
+
+    if not collection.active:
+        raise InactiveCollectionEntryAddition()
 
     for field in collection.template["fields"]:
         conditions = [
