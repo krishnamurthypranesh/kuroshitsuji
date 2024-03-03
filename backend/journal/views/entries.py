@@ -14,6 +14,7 @@ from exc import (
 )
 from helpers import generate_id, get_current_datetime
 from journal.models import Collection, Entry
+from journal.schema import EntryOut, ListEntriesResponse
 
 logger = logging.getLogger("module::journal")
 
@@ -129,7 +130,6 @@ def list_entries(
             EntryOut(
                 collection_id=collection.gid,
                 entry_id=rec.gid,
-                name=rec.name,
                 content=rec.content,
                 status=rec.status,
                 created_at=rec.created_at.replace(microsecond=0).isoformat(),
@@ -138,13 +138,6 @@ def list_entries(
         )
 
     response = ListEntriesResponse(
-        limit=limit,
-        records=ret_val,
-    )
-
-    return JsonResponse(data=response.model_dump(), status=200)
-
-    response = ListCollectionResponse(
         limit=limit,
         records=ret_val,
     )

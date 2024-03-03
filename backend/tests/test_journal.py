@@ -7,6 +7,7 @@ from authn.models import User, UserSession
 from django.test import Client
 from django.urls import reverse
 from journal.models import Collection, Entry
+from journal.schema import EntryStatus
 
 
 @pytest.mark.django_db
@@ -564,16 +565,155 @@ class TestCreateEntry:
 class TestListEntries:
     @pytest.fixture(scope="function", autouse=True)
     def setup(self, create_user_session):
-        pass
+        self.client = Client()
+
+        token = create_user_session
+
+        user = User.objects.get(
+            id=UserSession.objects.get(session_id=token).user_id,
+        )
+
+        name = str(uuid.uuid1())
+        response = self.client.post(
+            reverse("dispatch_collections"),
+            data={
+                "name": name,
+                "template": {
+                    "fields": [
+                        {
+                            "key": "title",
+                            "display_name": "Title",
+                        },
+                        {
+                            "key": "content",
+                            "display_name": "Content",
+                        },
+                    ],
+                },
+                "active": True,
+            },
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response is not None
+        assert response.status_code == 201
+
+        collection = Collection.objects.get(
+            gid=response.json()["collection_id"], user_id=user.id
+        )
+
+        entry_ids = []
+
+        for i in range(20):
+            response = self.client.post(
+                reverse("dispatch_entries"),
+                data={
+                    "collection_id": collection.gid,
+                    "content": {
+                        "title": "test title",
+                        "content": "test content",
+                    },
+                    "publish": True,
+                },
+                content_type="application/json",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+            assert response is not None
+            assert response.status_code == 201
+
+            entry_ids.append(response.json()["entry_id"])
+
+        entries = Entry.objects.filter(
+            gid__in=entry_ids, collection_id=collection.id, user_id=user.id
+        ).order_by("-gid")
+
+        self.user = user
+        self.token = token
+        self.collection = collection
+        self.entries = entries
+
+        yield
+
+        Entry.objects.filter(collection_id=collection.id).delete()
+        Collection.objects.filter(user_id=user.id).delete()
 
     def test_returns_401_if_unauthenticated(self):
-        assert 1 == 0
+        response = self.client.get(
+            reverse("dispatch_entries"),
+            content_type="application/json",
+            data={
+                "collection_id": self.collection.gid,
+                "limit": 10,
+            },
+        )
+
+        assert response is not None
+        assert response.status_code == 401
+
+        assert response.json() == {"detail": "Unauthorized"}
 
     def test_returns_empty_list_if_no_entries_present(self):
-        assert 1 == 0
+        Entry.objects.filter(collection_id=self.collection.id).delete()
+
+        response = self.client.get(
+            reverse(viewname="dispatch_entries"),
+            data={
+                "collection_id": self.collection.gid,
+                "limit": 10,
+            },
+            headers={"Authorization": f"Bearer {self.token}"},
+            content_type="application/json",
+        )
+
+        assert response is not None
+        assert response.status_code == 200
+
+        assert response.json()["records"] == []
 
     def test_applies_starting_after_filter_correctly(self):
-        assert 1 == 0
+        for idx, etr in enumerate(self.entries):
+            response = self.client.get(
+                reverse(viewname="dispatch_entries"),
+                data={
+                    "collection_id": self.collection.gid,
+                    "limit": 20,
+                    "starting_after": etr.gid,
+                },
+                headers={"Authorization": f"Bearer {self.token}"},
+                content_type="application/json",
+            )
+
+            assert response is not None
+            assert response.status_code == 200
+
+            actual_map = {r["entry_id"]: r for r in response.json()["records"]}
+
+            for e in self.entries[:idx]:
+                actual = actual_map[e.gid]
+
+                assert self.collection.gid == actual["collection_id"]
+                assert e.gid == actual["entry_id"]
+                assert e.content == actual["content"]
+                assert EntryStatus(e.status) == EntryStatus(actual["status"])
+                assert (
+                    e.created_at.replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    == actual["created_at"]
+                )
 
     def test_returns_404_if_collection_not_found(self):
-        assert 1 == 0
+        Collection.objects.filter(id=self.collection.id).delete()
+
+        response = self.client.get(
+            reverse(viewname="dispatch_entries"),
+            data={
+                "collection_id": self.collection.gid,
+                "limit": 10,
+            },
+            headers={"Authorization": f"Bearer {self.token}"},
+            content_type="application/json",
+        )
+
+        assert response is not None
+        assert response.status_code == 404

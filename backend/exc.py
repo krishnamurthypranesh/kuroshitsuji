@@ -6,6 +6,13 @@ class ApplicationBaseException(Exception):
         super().__init__(err_msg)
 
 
+class InvalidEnumException(Exception):
+    def __init__(self, name, val):
+        err_msg = f"enum: {name} has no val: {val}"
+
+        super().__init__(err_msg)
+
+
 class BadPaginationParameter(ApplicationBaseException):
     def __init__(self, err_msg: str):
         super().__init__(err_msg=err_msg, status_code=400)
