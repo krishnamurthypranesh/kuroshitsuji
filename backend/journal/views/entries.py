@@ -151,3 +151,39 @@ def list_entries(
     )
 
     return JsonResponse(data=response.model_dump(), status=200)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_entry(request, entry_id):
+    try:
+        entry = Entry.objects.get(
+            gid=entry_id,
+            user_id=request.user.id,
+        )
+    except Entry.DoesNotExist:
+        raise ObjectNotFound("entry")
+
+    try:
+        collection = Collection.objects.get(
+            id=entry.collection_id,
+            user_id=request.user.id,
+        )
+    except Collection.DoesNotExist:
+        raise ObjectNotFound("collection")
+
+    print(f"entry title: {entry.title}")
+
+    resp = EntryOut(
+        collection_id=collection.gid,
+        entry_id=entry.gid,
+        title=entry.title,
+        content=entry.content,
+        status=entry.status,
+        created_at=entry.created_at.replace(microsecond=0).isoformat(),
+        published_at=entry.published_at.replace(microsecond=0).isoformat()
+        if entry.published_at
+        else None,
+    )
+
+    return JsonResponse(data=resp.model_dump(), status=200)

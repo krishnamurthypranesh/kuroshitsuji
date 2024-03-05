@@ -608,10 +608,6 @@ class TestListEntries:
                 "template": {
                     "fields": [
                         {
-                            "key": "title",
-                            "display_name": "Title",
-                        },
-                        {
                             "key": "content",
                             "display_name": "Content",
                         },
@@ -637,8 +633,8 @@ class TestListEntries:
                 reverse("dispatch_entries"),
                 data={
                     "collection_id": collection.gid,
+                    "title": "test title",
                     "content": {
-                        "title": "test title",
                         "content": "test content",
                     },
                     "publish": True,
@@ -744,3 +740,135 @@ class TestListEntries:
 
         assert response is not None
         assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestGetEntryById:
+    @pytest.fixture(scope="function", autouse=True)
+    def setUp(self, request, create_user_session):
+        self.client = Client()
+
+        token = create_user_session
+
+        user = User.objects.get(
+            id=UserSession.objects.get(session_id=token).user_id,
+        )
+
+        name = str(uuid.uuid1())
+        response = self.client.post(
+            reverse("dispatch_collections"),
+            data={
+                "name": name,
+                "template": {
+                    "fields": [
+                        {
+                            "key": "title",
+                            "display_name": "Title",
+                        },
+                        {
+                            "key": "content",
+                            "display_name": "Content",
+                        },
+                    ],
+                },
+                "active": True,
+            },
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response is not None
+        assert response.status_code == 201
+
+        collection = Collection.objects.get(
+            gid=response.json()["collection_id"], user_id=user.id
+        )
+
+        entry_ids = []
+
+        for i in range(1):
+            response = self.client.post(
+                reverse("dispatch_entries"),
+                data={
+                    "collection_id": collection.gid,
+                    "title": "test title",
+                    "content": {
+                        "content": "test content",
+                    },
+                    "publish": True,
+                },
+                content_type="application/json",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+            assert response is not None
+            assert response.status_code == 201
+
+            entry_ids.append(response.json()["entry_id"])
+
+        entries = Entry.objects.filter(
+            gid__in=entry_ids, collection_id=collection.id, user_id=user.id
+        ).order_by("-gid")
+
+        self.user = user
+        self.token = token
+        self.collection = collection
+        self.entries = entries
+
+        yield
+
+        Entry.objects.filter(collection_id=collection.id).delete()
+        Collection.objects.filter(user_id=user.id).delete()
+
+    def test_returns_401_if_authentication_fails(self):
+        response = self.client.get(
+            reverse(
+                viewname="get_collection_by_id", kwargs={"collection_id": "random_id"}
+            ),
+            content_type="application/json",
+        )
+
+        assert response is not None
+        assert response.status_code == 401
+        assert response.json() == {"detail": "Unauthorized"}
+
+    def test_returns_404_if_entry_not_found(self, create_user_session):
+        token = create_user_session
+        response = self.client.get(
+            reverse(viewname="get_entry_by_id", kwargs={"entry_id": "gibberish"}),
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response is not None
+        assert response.status_code == 404
+        assert response.json() == {"detail": "entry not found"}
+
+    def test_returns_200_if_entry_is_found(self, create_user_session):
+        token = create_user_session
+
+        response = self.client.get(
+            reverse(
+                viewname="get_entry_by_id", kwargs={"entry_id": self.entries[0].gid}
+            ),
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response is not None
+        assert response.status_code == 200
+
+        entry = self.entries[0]
+        expected = {
+            "collection_id": self.collection.gid,
+            "entry_id": entry.gid,
+            "content": entry.content,
+            "status": EntryStatus(entry.status).name,
+            "created_at": entry.created_at.replace(microsecond=0).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
+            "published_at": entry.published_at.replace(microsecond=0).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
+        }
+        assert response.json() == expected

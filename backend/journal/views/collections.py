@@ -109,7 +109,7 @@ def list_collections(
     request,
     starting_after: Optional[str] = None,
     ending_before: Optional[str] = None,
-    limit: int = None,
+    limit: int = 20,
     status: int = None,
 ) -> ListCollectionResponse:
     # for now, the list api will just accept the limit and next_cursor parameters

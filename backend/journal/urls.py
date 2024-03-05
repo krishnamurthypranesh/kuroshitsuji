@@ -11,4 +11,9 @@ urlpatterns = [
         name="get_collection_by_id",
     ),
     path("entries/", entries.entries_dispatch, name="dispatch_entries"),
+    path(
+        "entries/<str:entry_id>/",
+        entries.get_entry,
+        name="get_entry_by_id",
+    ),
 ]

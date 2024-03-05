@@ -1,4 +1,5 @@
 import logging
+import traceback
 from datetime import timezone
 
 from authn.models import User, UserSession
@@ -45,6 +46,7 @@ class ExceptionHandlingMiddleware:
 
     def process_exception(self, request, exception):
         logging.error(f"error: {exception} when processing request")
+        logging.error(f"traceback: {traceback.format_exc()}")
         error_message = getattr(exception, "err_msg", str(exception))
         status_code = getattr(exception, "status_code", 500)
 
