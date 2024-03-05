@@ -17,51 +17,24 @@ const CollectionDetails = (props) => {
     }
 
     async function listEntriesForCollection() {
-        // const userToken = JSON.parse(localStorage.getItem("user")).token;
+        const userToken = JSON.parse(localStorage.getItem("user")).token;
 
-        // const response = await fetch(
-        //     "http://localhost:8000/v1/journal/entries/?collection_id=" + urlParams.collectionId,
-        //     {
-        //         method: "GET",
-        //         headers: {
-        //             Authorization: "Bearer " + userToken,
-        //             "Content-Type": "application/json",
-        //         },
-        //     }
-        // )
-        // if (!response.ok) {
-        //     console.log("error fetching data from server");
-        //     throw new Error("error fetching data from server");
-        // }
-
-        // const data = await response.json();
-
-        const data = {
-            "limit": 10,
-            "records": [
-                {
-                    "entry_id": "etr_123",
-                    "title": "Test 123",
-                    "created_at": "2023-12-02T01:00:00Z",
-                    "updated_at": "2023-12-02T01:00:00Z",
-                    "status": "Draft"
+        const response = await fetch(
+            "http://localhost:8000/v1/journal/entries/?collection_id=" + urlParams.collectionId,
+            {
+                method: "GET",
+                headers: {
+                    Authorization: "Bearer " + userToken,
+                    "Content-Type": "application/json",
                 },
-                {
-                    "entry_id": "etr_456",
-                    "title": "Test 456",
-                    "created_at": "2023-12-02T00:00:00Z",
-                    "updated_at": "2023-12-02T00:00:00Z",
-                    "status": "Published"
-                },
-                {
-                    "entry_id": "etr_789",
-                    "title": "Test 789",
-                    "created_at": "2023-12-01T23:00:00Z",
-                    "updated_at": "2023-12-01T23:00:00Z",
-                    "status": "Published"
-                },
-            ]
+            }
+        )
+        if (!response.ok) {
+            console.log("error fetching data from server");
+            throw new Error("error fetching data from server");
         }
+
+        const data = await response.json();
 
         setEntriesList(data)
     }

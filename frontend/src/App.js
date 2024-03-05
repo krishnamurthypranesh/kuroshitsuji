@@ -14,6 +14,8 @@ import CollectionDetails from './CollectionDetails';
 
 import CreateEntry from './CreateEntry';
 
+import EntryDetails from './EntryDetails';
+
 import './App.css';
 
 import { useEffect, useState, useLayoutEffect } from 'react';
@@ -75,6 +77,10 @@ function App() {
 
           <Route exact path='/collections/:collectionId/new-entry' element={<PrivateRoute component={CreateEntry} loggedIn={loggedIn} />}>
             <Route path="/collections/:collectionId/new-entry" element={<CreateEntry />} />
+          </Route>
+
+          <Route exact path='/entries/:entryId' element={<PrivateRoute component={EntryDetails} loggedIn={loggedIn} />}>
+            <Route path="/entries/:entryId" element={<EntryDetails />} />
           </Route>
 
 

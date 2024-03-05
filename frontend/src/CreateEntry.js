@@ -23,8 +23,8 @@ const CreateEntry = (props) => {
         // but this does mean that I'll have to set the name of the form element to the key value from the template
         const data = {
             collection_id: collection.collection_id,
+            title: entryTitle,
             content: {
-                title: entryTitle,
                 content: entryContent,
             },
             publish: shouldPublish,
