@@ -49,6 +49,7 @@ class CustomBase(BaseModel):
 class CollectionTemplateField(CustomBase):
     key: str
     display_name: str
+    required: Optional[bool] = False
 
 
 class CollectionTemplate(CustomBase):
@@ -94,10 +95,11 @@ class EntryStatus(CustomEnum):
 class EntryOut(CustomBase):
     collection_id: str
     entry_id: str
+    title: Optional[str] = ""
     content: dict
     status: EntryStatus
     created_at: datetime
-    published: Optional[datetime] = None
+    published_at: Optional[datetime] = None
 
     @field_serializer("status")
     def ser_status(status):

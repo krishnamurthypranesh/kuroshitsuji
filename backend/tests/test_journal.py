@@ -365,10 +365,6 @@ class TestCreateEntry:
                 "template": {
                     "fields": [
                         {
-                            "key": "title",
-                            "display_name": "Title",
-                        },
-                        {
                             "key": "content",
                             "display_name": "Content",
                         },
@@ -418,8 +414,8 @@ class TestCreateEntry:
         self.collection.template = {
             "fields": [
                 {
-                    "key": "title",
-                    "display_name": "Title",
+                    "key": "content 1",
+                    "display Name": "Content 1",
                     "required": True,
                 },
                 {
@@ -435,9 +431,10 @@ class TestCreateEntry:
             reverse("dispatch_entries"),
             content_type="application/json",
             data={
+                "title": "test title",
                 "collection_id": self.collection.gid,
                 "content": {
-                    "content": "test content",
+                    "content 2": "test content",
                 },
                 "publish": True,
             },
@@ -463,6 +460,7 @@ class TestCreateEntry:
                     content_type="application/json",
                     data={
                         "collection_id": self.collection.gid,
+                        "title": "test title",
                         "content": {
                             "content": "test content",
                         },
@@ -533,6 +531,34 @@ class TestCreateEntry:
             "detail": "cannot add an entry for an inactive collection"
         }
 
+    def test_returns_400_if_entry_title_is_not_specified(self):
+        self.collection.active = False
+        self.collection.save()
+
+        content = {
+            "content": "test content",
+        }
+
+        response = self.client.post(
+            reverse("dispatch_entries"),
+            content_type="application/json",
+            data={
+                "title": "test_title",
+                "collection_id": self.collection.gid,
+                "content": content,
+                "publish": True,
+            },
+            headers={
+                "Authorization": f"Bearer {self.token}",
+            },
+        )
+
+        assert response is not None
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": "cannot add an entry for an inactive collection"
+        }
+
     def test_creates_entry_with_correct_data(self):
         content = {
             "title": "test title",
@@ -544,6 +570,7 @@ class TestCreateEntry:
             content_type="application/json",
             data={
                 "collection_id": self.collection.gid,
+                "title": "test title",
                 "content": content,
                 "publish": True,
             },

@@ -49,6 +49,9 @@ def create_entry(request):
     if not collection.active:
         raise InactiveCollectionEntryAddition()
 
+    if not body.get("title"):
+        raise InvalidEntryContent("title not supplied")
+
     for field in collection.template["fields"]:
         conditions = [
             field.get("required", False) == True,
@@ -69,6 +72,7 @@ def create_entry(request):
         gid=generate_id(constants.ENTRIES_PREFIX),
         user_id=request.user.id,
         collection_id=collection.id,
+        title=body["title"],
         content=body["content"],
         status=entry_status,
         published_at=published_at,
@@ -80,6 +84,7 @@ def create_entry(request):
         "collection_id": collection.gid,
         "entry_id": entry.gid,
         "content": entry.content,
+        "title": entry.title,
         "status": Entry.EntryChoices(entry.status).name,
         "created_at": entry.created_at.replace(microsecond=0).isoformat(),
         "published_at": entry.created_at.replace(microsecond=0).isoformat(),
@@ -93,9 +98,9 @@ def list_entries(
     collection_id: str,
     starting_after: Optional[str] = None,
     ending_before: Optional[str] = None,
-    limit: int = 10,
+    limit: int = 20,
 ):
-    limit = int(limit)
+    limit = int(limit) if limit else constants.MAX_PAGINATION_LIMIT
     if limit > constants.MAX_PAGINATION_LIMIT:
         limit = constants.MAX_PAGINATION_LIMIT
 
@@ -129,11 +134,14 @@ def list_entries(
         ret_val.append(
             EntryOut(
                 collection_id=collection.gid,
+                title=rec.title,
                 entry_id=rec.gid,
                 content=rec.content,
                 status=rec.status,
                 created_at=rec.created_at.replace(microsecond=0).isoformat(),
-                published=rec.published_at.replace(microsecond=0).isoformat(),
+                published=rec.published_at.replace(microsecond=0).isoformat()
+                if rec.published_at
+                else None,
             )
         )
 

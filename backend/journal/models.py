@@ -25,6 +25,7 @@ class Entry(CustomBaseModel):
 
     user_id = models.BigIntegerField(null=False, blank=False)
     collection_id = models.BigIntegerField(null=False, blank=False)
+    title = models.TextField(null=True, blank=False)
     content = models.JSONField(null=False, default=dict)
     status = models.IntegerField(
         null=False, choices=EntryChoices.choices, default=EntryChoices.DRAFT
